@@ -15,7 +15,7 @@
 class PickupReportsController < ApplicationController
 
   http_basic_authenticate_with name: 'test', password: 'test', only: [:summary, :approve]
-
+  prepend_before_action :authenticate_user!, except: [:summary, :approve]
 
   def new
     @pickup = Pickup.find(params[:pickup_id])
@@ -26,12 +26,13 @@ class PickupReportsController < ApplicationController
   end
 
   def index
-    # current_user by email :)
-    @user = User.last
   end
 
   def update
-    #pickup_params[:notes]
+    pickup = Pickup.find(params[:id])
+    pickup.pickup_report.notes = pickup_params[:notes]
+    pickup.pickup_report.warehouse = Warehouse.find(pickup_params[:warehouse_id])
+    pickup.pickup_report.save!
 
     @report = PickupReport.find(params[:id])
 
@@ -46,7 +47,9 @@ class PickupReportsController < ApplicationController
     end
 
 
-    render :thank_you, layout: nil
+    # render "pickups/thank_you", layout: nil
+
+    redirect_to thank_you_path
   end
 
   def summary
